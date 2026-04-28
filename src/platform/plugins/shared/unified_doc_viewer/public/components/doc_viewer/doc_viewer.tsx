@@ -12,12 +12,14 @@ import type { DocViewerApi, DocViewerProps } from '@kbn/unified-doc-viewer';
 import { DocViewer } from '@kbn/unified-doc-viewer';
 
 import { getUnifiedDocViewerServices } from '../../plugin';
+import { useDocViewerFlyoutType } from '../doc_viewer_flyout/flyout_type_context';
 
 export const UnifiedDocViewer = forwardRef<
   DocViewerApi,
   Omit<DocViewerProps, 'docViews' | 'reportEvent'>
->(({ docViewsRegistry, ...props }, ref) => {
+>(({ docViewsRegistry, flyoutType, ...props }, ref) => {
   const { unifiedDocViewer, analytics } = getUnifiedDocViewerServices();
+  const flyoutTypeFromContext = useDocViewerFlyoutType();
 
   const registry = useMemo(() => {
     if (docViewsRegistry) {
@@ -34,6 +36,7 @@ export const UnifiedDocViewer = forwardRef<
       docViews={registry.getAll()}
       reportEvent={analytics.reportEvent}
       {...props}
+      flyoutType={flyoutType ?? flyoutTypeFromContext}
     />
   );
 });

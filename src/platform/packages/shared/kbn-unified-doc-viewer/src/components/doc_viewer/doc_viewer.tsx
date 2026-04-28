@@ -15,7 +15,7 @@ import useLocalStorage from 'react-use/lib/useLocalStorage';
 import type { AnalyticsServiceStart } from '@kbn/core/public';
 import { DocViewerTab } from './doc_viewer_tab';
 import type { DocView, DocViewRenderProps } from '../../types';
-import { useDocViewerTabViewedEvent } from '../../analytics';
+import { useDocViewerTabViewedEvent, type FlyoutType } from '../../analytics';
 import { useRestorableState, withRestorableState } from './restorable_state';
 
 export const INITIAL_TAB = 'unifiedDocViewer:initialTab';
@@ -31,13 +31,22 @@ export interface InternalDocViewerProps
   docViews: DocView[];
   initialTabId?: DocView['id'];
   onUpdateSelectedTabId?: (tabId: string | undefined) => void;
+  /**
+   * Identifies the originating flyout this view belongs to (e.g. `traces`, `logs`).
+   * Forwarded to `useDocViewerTabViewedEvent` so the analytics events are
+   * attributed to the parent flyout.
+   */
+  flyoutType?: FlyoutType;
 }
 
 const getFullTabId = (tabId: string) => `kbn_doc_viewer_tab_${tabId}`;
 const getOriginalTabId = (fullTabId: string) => fullTabId.replace('kbn_doc_viewer_tab_', '');
 
 const InternalDocViewer = forwardRef<InternalDocViewerApi, InternalDocViewerProps>(
-  ({ docViews, initialTabId, onUpdateSelectedTabId, reportEvent, ...renderProps }, ref) => {
+  (
+    { docViews, initialTabId, onUpdateSelectedTabId, reportEvent, flyoutType, ...renderProps },
+    ref
+  ) => {
     const tabs = docViews
       .filter(({ enabled }) => enabled) // Filter out disabled doc views
       .map((docView: DocView) => ({
@@ -84,6 +93,7 @@ const InternalDocViewer = forwardRef<InternalDocViewerApi, InternalDocViewerProp
       reportEvent,
       tabId: selectedTab ? getOriginalTabId(selectedTab.id) : undefined,
       hit: renderProps.hit,
+      flyoutType,
       initialEventKey: initialDocViewerViewedEventKey,
       onEventKeyChange: setInitialDocViewerViewedEventKey,
     });

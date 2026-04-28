@@ -28,6 +28,14 @@ export const registerDocViewerAnalyticsEvents = (analytics: AnalyticsServiceSetu
           optional: true,
         },
       },
+      flyoutType: {
+        type: 'keyword',
+        _meta: {
+          description:
+            'Identifies the originating flyout the view belongs to. Allows filtering and grouping of all events emitted while navigating within a given flyout (e.g. trace timeline, span/log child flyouts inherit the parent flyout type).',
+          optional: true,
+        },
+      },
     },
   });
 };

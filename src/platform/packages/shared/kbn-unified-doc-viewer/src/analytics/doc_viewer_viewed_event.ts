@@ -9,7 +9,11 @@
 
 import type { AnalyticsServiceStart } from '@kbn/core/public';
 import { useEffect, useMemo, useRef } from 'react';
-import { DOC_VIEWER_VIEWED_EVENT_TYPE, DOC_VIEWER_VIEWED_ROOT_CONTENT_ID } from './constants';
+import {
+  DOC_VIEWER_VIEWED_EVENT_TYPE,
+  DOC_VIEWER_VIEWED_ROOT_CONTENT_ID,
+  type FlyoutType,
+} from './constants';
 import type { DocViewRenderProps } from '../types';
 
 /**
@@ -24,6 +28,11 @@ export interface DocViewerViewedEvent {
    * Active tab identifier within the main content.
    */
   tabId?: string;
+  /**
+   * Identifies the originating flyout this view belongs to (e.g. `traces`, `logs`).
+   * Set by the flyout consumer and propagated to nested doc viewer surfaces.
+   */
+  flyoutType?: FlyoutType;
 }
 
 /**
@@ -63,6 +72,7 @@ export const useDocViewerViewedEvent = ({
   reportEvent,
   contentId,
   tabId,
+  flyoutType,
   keys,
   enabled = true,
   initialEventKey,
@@ -77,7 +87,7 @@ export const useDocViewerViewedEvent = ({
       return;
     }
 
-    const eventKey = [contentId, tabId, ...(keys ?? [])].filter(Boolean).join('|');
+    const eventKey = [flyoutType, contentId, tabId, ...(keys ?? [])].filter(Boolean).join('|');
 
     if (lastReportedEventRef.current === eventKey) {
       return;
@@ -95,12 +105,13 @@ export const useDocViewerViewedEvent = ({
       reportEvent(DOC_VIEWER_VIEWED_EVENT_TYPE, {
         contentId,
         tabId,
+        flyoutType,
       });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(`Error reporting event ${DOC_VIEWER_VIEWED_EVENT_TYPE}:`, error);
     }
-  }, [contentId, enabled, keys, onEventKeyChange, reportEvent, tabId]);
+  }, [contentId, enabled, flyoutType, keys, onEventKeyChange, reportEvent, tabId]);
 };
 
 /**

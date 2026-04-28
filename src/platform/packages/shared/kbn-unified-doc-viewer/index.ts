@@ -16,6 +16,7 @@ export {
   DocViewsRegistry,
   ElasticRequestState,
   FieldName,
+  FlyoutType,
   registerDocViewerAnalyticsEvents,
   type UseDocViewerSpanLogViewedEventParams,
   type UseDocViewerTabViewedEventParams,

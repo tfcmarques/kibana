@@ -23,6 +23,7 @@ import { useFlyoutActions } from './use_flyout_actions';
 import { DiscoverGridFlyoutActions } from './discover_grid_flyout_actions';
 import type { DocViewerExtensionParams } from '../../context_awareness';
 import { useProfileAccessor } from '../../context_awareness';
+import { getFlyoutTypeFromRecord } from './get_flyout_type';
 
 export const FLYOUT_WIDTH_KEY = 'discover:flyoutWidth';
 
@@ -108,9 +109,12 @@ export function DiscoverGridFlyout({
     dismissAllFlyoutsExceptFor(DiscoverFlyouts.docViewer);
   }, []);
 
+  const originFlyoutType = useMemo(() => getFlyoutTypeFromRecord(actualHit), [actualHit]);
+
   return (
     <UnifiedDocViewerFlyout
       flyoutTitle={docViewer.title}
+      originFlyoutType={originFlyoutType}
       flyoutActions={
         !isESQLQuery && flyoutActions.length > 0 ? (
           <DiscoverGridFlyoutActions flyoutActions={flyoutActions} />

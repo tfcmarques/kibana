@@ -29,6 +29,7 @@ import { useDocViewerSpanLogViewedEvent } from '@kbn/unified-doc-viewer';
 import DocViewerSource from '../../../../../doc_viewer_source';
 import DocViewerTable from '../../../../../doc_viewer_table';
 import { getUnifiedDocViewerServices } from '../../../../../../plugin';
+import { useDocViewerFlyoutType } from '../../../../../doc_viewer_flyout/flyout_type_context';
 import type { FlyoutContentId } from '../../../common/constants';
 
 const tabIds = {
@@ -99,6 +100,7 @@ export function WaterfallFlyout({
   skipNextEventReport,
 }: Props) {
   const { analytics } = getUnifiedDocViewerServices();
+  const flyoutType = useDocViewerFlyoutType();
   const [selectedTabId, setSelectedTabId] = useState(tabIds.OVERVIEW);
   const flyoutTitleId = useGeneratedHtmlId();
   const flyoutId = useGeneratedHtmlId({ prefix: 'documentDetailFlyout' });
@@ -108,6 +110,7 @@ export function WaterfallFlyout({
     contentId: flyoutContentId,
     tabId: selectedTabId,
     hit,
+    flyoutType,
     skipNextReport: skipNextEventReport,
   });
 

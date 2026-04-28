@@ -11,7 +11,11 @@ import { renderHook } from '@testing-library/react';
 import { buildDataTableRecord } from '@kbn/discover-utils';
 import { analyticsServiceMock } from '@kbn/core-analytics-browser-mocks';
 import { dataViewMock } from '@kbn/discover-utils/src/__mocks__';
-import { DOC_VIEWER_VIEWED_EVENT_TYPE, DOC_VIEWER_VIEWED_ROOT_CONTENT_ID } from './constants';
+import {
+  DOC_VIEWER_VIEWED_EVENT_TYPE,
+  DOC_VIEWER_VIEWED_ROOT_CONTENT_ID,
+  FlyoutType,
+} from './constants';
 import { useDocViewerTabViewedEvent, useDocViewerViewedEvent } from './doc_viewer_viewed_event';
 
 const createReportEvent = () => analyticsServiceMock.createAnalyticsServiceStart().reportEvent;
@@ -147,6 +151,46 @@ describe('useDocViewerViewedEvent', () => {
     });
   });
 
+  test('includes the flyoutType in the event key and payload', () => {
+    const reportEvent = createReportEvent();
+    const onEventKeyChange = jest.fn();
+
+    const { rerender } = renderHook(useDocViewerViewedEvent, {
+      initialProps: {
+        reportEvent,
+        contentId: 'content-1',
+        tabId: 'tab-1',
+        keys: ['doc-1'],
+        flyoutType: FlyoutType.Traces,
+        onEventKeyChange,
+      },
+    });
+
+    expect(onEventKeyChange).toHaveBeenCalledWith('traces|content-1|tab-1|doc-1');
+    expect(reportEvent).toHaveBeenCalledWith(DOC_VIEWER_VIEWED_EVENT_TYPE, {
+      contentId: 'content-1',
+      tabId: 'tab-1',
+      flyoutType: FlyoutType.Traces,
+    });
+
+    // Re-rendering with a different flyoutType triggers a new event.
+    rerender({
+      reportEvent,
+      contentId: 'content-1',
+      tabId: 'tab-1',
+      keys: ['doc-1'],
+      flyoutType: FlyoutType.Logs,
+      onEventKeyChange,
+    });
+
+    expect(onEventKeyChange).toHaveBeenNthCalledWith(2, 'logs|content-1|tab-1|doc-1');
+    expect(reportEvent).toHaveBeenNthCalledWith(2, DOC_VIEWER_VIEWED_EVENT_TYPE, {
+      contentId: 'content-1',
+      tabId: 'tab-1',
+      flyoutType: FlyoutType.Logs,
+    });
+  });
+
   test('logs and swallows report errors', () => {
     const reportEvent = createReportEvent();
     const reportError = new Error('boom');
@@ -220,5 +264,24 @@ describe('useDocViewerTabViewedEvent', () => {
     });
 
     expect(reportEvent).toHaveBeenCalledTimes(2);
+  });
+
+  test('forwards the originating flyoutType in the payload', () => {
+    const reportEvent = createReportEvent();
+
+    renderHook(useDocViewerTabViewedEvent, {
+      initialProps: {
+        reportEvent,
+        hit: createHit('doc-1'),
+        tabId: 'table',
+        flyoutType: FlyoutType.Traces,
+      },
+    });
+
+    expect(reportEvent).toHaveBeenCalledWith(DOC_VIEWER_VIEWED_EVENT_TYPE, {
+      contentId: DOC_VIEWER_VIEWED_ROOT_CONTENT_ID,
+      tabId: 'table',
+      flyoutType: FlyoutType.Traces,
+    });
   });
 });
